@@ -20,6 +20,7 @@ class DmxPy:
         self.dmx_size = dmx_size
         if serial_port is None:
             serial_port = grep_ports(port_grep)
+            print('Found DMX device matching %s at' % port_grep, serial_port)
         try:
             self.serial = serial.Serial(serial_port, baudrate=baud_rate)
         except serial.SerialException:
@@ -62,7 +63,7 @@ def main():
                         help='if port not specified attempt to auto-detect '
                              'serial matching grep (default: 0403:6001)')
     parser.add_argument('-l', '--level', type=int, default=255,
-                        choices=range(0,256),
+                        choices=range(0, 256),
                         help='default level [0-255] of unspecified channels '
                              '(default: 255)')
     parser.add_argument('-s', '--size', type=int, default=512,
