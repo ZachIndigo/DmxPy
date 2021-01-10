@@ -1,14 +1,25 @@
 import argparse
-import serial
 import time
+
+import serial
+from serial.tools import list_ports
+
+
+def grep_ports(grep):
+    ports = list(list_ports.grep(grep))
+    assert len(ports) == 1, f'more than 1 port matching {grep}'
+    port = ports[0]
+    return port.device
 
 
 class DmxPy:
-    def __init__(self, serial_port, baud_rate=57600, default_level=255,
-                 dmx_size=512, levels=255):
+    def __init__(self, serial_port=None, baud_rate=57600, default_level=255,
+                 dmx_size=512, levels=255, port_grep='0403:6001'):
         self.default_level = default_level
         self.levels = levels
         self.dmx_size = dmx_size
+        if serial_port is None:
+            serial_port = grep_ports(port_grep)
         try:
             self.serial = serial.Serial(serial_port, baudrate=baud_rate)
         except serial.SerialException:
@@ -45,9 +56,13 @@ def main():
     parser.add_argument('-r', '--rate', type=int, default=57600,
                         help='baud rate for USB communication '
                              '(default: 57600)')
-    parser.add_argument('-p', '--port', type=str, required=True,
+    parser.add_argument('-p', '--port', type=str,
                         help='Serial(COM) port, e.g., /dev/ttyUSB1 or COM3')
+    parser.add_argument('-g', '--port-grep', type=str, default='0403:6001',
+                        help='if port not specified attempt to auto-detect '
+                             'serial matching grep (default: 0403:6001)')
     parser.add_argument('-l', '--level', type=int, default=255,
+                        choices=range(0,256),
                         help='default level [0-255] of unspecified channels '
                              '(default: 255)')
     parser.add_argument('-s', '--size', type=int, default=512,
@@ -61,7 +76,7 @@ def main():
     args = parser.parse_args()
 
     dmx = DmxPy(args.port, baud_rate=args.rate, default_level=args.level,
-                dmx_size=args.size)
+                dmx_size=args.size, port_grep=args.port_grep)
     if not args.blackout and not args.whiteout and not args.demo:
         print('Select an action: [b]lackout, [w]hiteout, or [d]emo')
         parser.print_usage()

@@ -18,9 +18,9 @@ To turn on all the lights at 50% (level 128)
 
     dmxpy -p /dev/ttyUSB2 --level 128 -w
 
-To play the demo light pattern with the default level at 200
+To play the demo light pattern with the default level at 200, auto-detect USB port
 
-    dmxpy -p COM2 -l 200 --demo
+    dmxpy -l 200 --demo
 
 ### For more specific use cases use the DmxPy module
 To import
@@ -31,6 +31,8 @@ To initialize
 
     dmx = DmxPy('serial port')
 where 'serial port' is where your device is located, .e.g, /dev/ttyUSB1 or COM3
+
+If None, attempt to identify port based on grep expression: hwid, serial number, etc
 
 To set a channel's value
 
