@@ -7,7 +7,7 @@ from serial.tools import list_ports
 
 def grep_ports(grep):
     ports = list(list_ports.grep(grep))
-    assert len(ports) == 1, f'more than 1 port matching {grep}'
+    assert len(ports) == 1, 'more than 1 port matching %s' % grep
     port = ports[0]
     return port.device
 
