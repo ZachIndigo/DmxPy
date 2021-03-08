@@ -29,7 +29,7 @@ To import
 
 To initialize
 
-    dmx = DmxPy('serial port')
+    dmx = DmxPy.DmxPy('serial port')
 where 'serial port' is where your device is located, .e.g, /dev/ttyUSB1 or COM3
 
 If None, attempt to identify port based on grep expression: hwid, serial number, etc
