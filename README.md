@@ -1,6 +1,8 @@
 ## DmxPy - Python Controller for USB - DMX devices
 
-DmxPy is a super-lightweight Python library for controlling any USB-DMX device that is compatible with Enttec's USB DMX Pro, including all Dmxking ultraDMX devices.
+DmxPy is a super-lightweight Python library for controlling any USB-DMX device
+that is compatible with Enttec's USB DMX Pro, including all Dmxking ultraDMX
+devices.
 
 DmxPy requires [PySerial](https://pypi.org/project/pyserial/) to work
 
@@ -14,13 +16,9 @@ To black out (turn off) the lights when the DMX is on port COM4
 
     dmxpy --port COM4 -b
 
-To turn on all the lights at 50% (level 128)
+To turn on the channels 1-3 at 50% (level 128)
 
-    dmxpy -p /dev/ttyUSB2 --level 128 -w
-
-To play the demo light pattern with the default level at 200, auto-detect USB port
-
-    dmxpy -l 200 --demo
+    dmxpy -p /dev/ttyUSB2 -c 808080
 
 ### For more specific use cases use the DmxPy module
 To import
@@ -36,8 +34,9 @@ If None, attempt to identify port based on grep expression: hwid, serial number,
 
 To set a channel's value
 
-    dmx.setChannel(chan, value)
-where 'chan' and 'value' are integers representing the respective DMX channels and values to set!
+    dmx.set_channels(channel_data, mod_type)
+where 'channel_data' is an array of integers representing the channel data, and
+'mod_type' is the operation to perform (increment, decrement, or set).
 
 To push dmx changes to device
 
