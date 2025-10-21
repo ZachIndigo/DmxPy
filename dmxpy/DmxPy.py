@@ -4,6 +4,7 @@ import math
 import serial
 from serial.tools import list_ports
 import tempfile
+import time
 import os
 
 
@@ -25,11 +26,36 @@ class DmxPy:
         if serial_port is None:
             serial_port = grep_ports(port_grep)
             print('Found DMX device matching %s at' % port_grep, serial_port)
-        try:
-            self.serial = serial.Serial(serial_port, baudrate=baud_rate)
-        except serial.SerialException:
+
+        # Add retry logic for serial port opening
+        max_retries = 10
+        retry_delay = 0.5
+        serial_connected = False
+        self.serial = None
+
+        for attempt in range(max_retries):
+            try:
+                self.serial = serial.Serial(serial_port, baudrate=baud_rate)
+                serial_connected = True
+                break
+            except serial.SerialException as e:
+                print(f'Attempt {attempt + 1} failed to open Serial Port: \
+                        {serial_port}')
+                print(f'Error: {e}')
+                # Don't sleep on the last attempt
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                else:
+                    print('Error: could not open Serial Port after retries:',
+                          serial_port)
+                    exit(1)
+
+        if not serial_connected:
             print('Error: could not open Serial Port:', serial_port)
             exit(1)
+
+        # Add a small delay to ensure the port is ready
+        time.sleep(0.1)
 
         try:
             if (path):
@@ -65,18 +91,36 @@ class DmxPy:
                 self.dmxData[channel] = max(0, self.dmxData[channel])
 
     def render(self):
-        dmx_open = [0x7E]
-        dmx_close = [0xE7]
-        dmx_intensity = [6, (self.dmx_size + 1) & 0xFF,
-                         (self.dmx_size + 1) >> 8 & 0xFF]
-        self.serial.write(
-            bytearray(dmx_open + dmx_intensity + self.dmxData + dmx_close))
+        # Add retry logic for sending DMX data
+        max_retries = 10
+        retry_delay = 0.1
 
-        # write data to file
-        with open(self.dmx_cache_fname, 'w') as filehandle:
-            self.dmxData.pop(0)
-            for dc in self.dmxData:
-                filehandle.write(f'{dc}\n')
+        for attempt in range(max_retries):
+            try:
+                dmx_open = [0x7E]
+                dmx_close = [0xE7]
+                dmx_intensity = [6, (self.dmx_size + 1) & 0xFF,
+                                 (self.dmx_size + 1) >> 8 & 0xFF]
+                self.serial.write(
+                    bytearray(dmx_open + dmx_intensity + self.dmxData
+                              + dmx_close))
+
+                # write data to file
+                with open(self.dmx_cache_fname, 'w') as filehandle:
+                    self.dmxData.pop(0)
+                    for dc in self.dmxData:
+                        filehandle.write(f'{dc}\n')
+                # Success, exit the function
+                return
+            except (serial.SerialException, OSError) as e:
+                print(f'DMX render attempt {attempt + 1} failed: {e}')
+                # Don't sleep on the last attempt
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                else:
+                    print('Error: failed to send DMX data after retries')
+                    # Re-raise the exception if all retries failed
+                    raise
 
 
 def main():
