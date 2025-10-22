@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='DmxPy',
-    version='0.5.1',
+    version='0.5.2',
     packages=find_packages(),
     entry_points={
         'console_scripts': [
